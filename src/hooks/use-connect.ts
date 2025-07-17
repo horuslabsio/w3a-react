@@ -1,34 +1,12 @@
 import { useCallback } from "react";
 
-import type { Connector } from "../connectors/base";
 import { useStarknet } from "../context/starknet";
-import {
-  type UseMutationProps,
-  type UseMutationResult,
-  useMutation,
-} from "../query";
-
-export type ConnectVariables = { connector?: Connector };
-
-type MutationResult = UseMutationResult<void, Error, ConnectVariables>;
-
-export type UseConnectProps = UseMutationProps<void, Error, ConnectVariables>;
 
 /** Value returned from `useConnect`. */
-export type UseConnectResult = Omit<
-  MutationResult,
-  "mutate" | "mutateAsync"
-> & {
-  /** Current connector. */
-  connector?: Connector;
-  /** Connectors available for the current chain. */
-  connectors: Connector[];
-  /** Connector waiting approval for connection. */
-  pendingConnector?: Connector;
-  /** Connect to a new connector. */
-  connect: (args?: ConnectVariables) => void;
-  /** Connect to a new connector. */
-  connectAsync: (args?: ConnectVariables) => Promise<void>;
+export type UseConnectResult = {
+  connect: () => void;
+
+  connectAsync: () => Promise<void>;
 };
 
 /**
@@ -40,32 +18,13 @@ export type UseConnectResult = Omit<
  *
  * ```
  */
-export function useConnect(props: UseConnectProps = {}): UseConnectResult {
-  const { connector, connectors, connect: connect_, chain } = useStarknet();
+export function useConnect(): UseConnectResult {
+  const { connect } = useStarknet();
 
-  const { mutate, mutateAsync, variables, ...result } = useMutation({
-    mutationKey: [{ entity: "connect", chainId: chain.name }],
-    mutationFn: connect_,
-    ...props,
-  });
-
-  const connect = useCallback(
-    (args?: ConnectVariables) => mutate(args ?? { connector }),
-    [mutate, connector]
-  );
-
-  const connectAsync = useCallback(
-    (args?: ConnectVariables) => mutateAsync(args ?? { connector }),
-    [mutateAsync, connector]
-  );
+  const connectAsync = useCallback(() => connect(), [connect]);
 
   return {
-    connector,
-    connectors,
-    pendingConnector: variables?.connector,
     connect,
     connectAsync,
-    variables,
-    ...result,
   };
 }

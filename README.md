@@ -1,69 +1,89 @@
-# React + TypeScript + Vite
+# W3A React SDK
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a React SDK built with TypeScript and Vite.
 
-Currently, two official plugins are available:
+## Development Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Prerequisites
 
-## Expanding the ESLint configuration
+1. Install yalc globally (only needed once):
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install -g yalc
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+pnpm install
+```
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+3. Build the SDK:
+
+```bash
+pnpm run build
+```
+
+4. Publish to yalc:
+
+```bash
+yalc publish
+```
+
+## Using the SDK in a Consumer App
+
+In your consumer app (e.g., `test-react-app`):
+
+1. Add the SDK to your project:
+
+```bash
+yalc add w3a-react
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+## 🛠️ Daily Dev Workflow
+
+### In `w3a-react` (SDK):
+
+1. Make code changes (e.g., to your provider or hook)
+2. Rebuild the SDK:
+
+```bash
+pnpm run build
+```
+
+3. Push changes to the consumer app:
+
+```bash
+yalc push
+```
+
+---
+
+### In `test-react-app` (consumer):
+
+1. Start the dev server:
+
+```bash
+pnpm dev
+```
+
+2. Test your app using the latest SDK changes.
+
+---
+
+### 🔁 Resetting if Things Break
+
+Sometimes local links get weird. If needed:
+
+```bash
+yalc remove w3a-react
+pnpm install
+yalc add w3a-react
+pnpm install
 ```
