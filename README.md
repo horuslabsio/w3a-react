@@ -32,7 +32,7 @@ yalc publish
 
 ## Using the SDK in a Consumer App
 
-In your consumer app (e.g., `test-react-app`):
+In your consumer app (e.g., `test-react-app`): https://github.com/stephanniegb/test-app.git
 
 1. Add the SDK to your project:
 
