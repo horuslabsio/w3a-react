@@ -1,6 +1,7 @@
 export * from "./use-account";
 export * from "./use-balance";
 export * from "./use-block-number";
+export * from "./use-call";
 export * from "./use-connect";
 export * from "./use-contract";
 export * from "./use-disconnect";
