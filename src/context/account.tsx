@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
-
-export type Address = `0x${string}`;
+import type { Address } from "../types/chains";
 
 import type { AccountInterface } from "starknet";
 import {

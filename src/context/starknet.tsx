@@ -20,12 +20,6 @@ import {
   ProviderInterface,
   RpcProvider,
 } from "starknet";
-import {
-  type Address,
-  type Chain,
-  mainnet,
-  sepolia,
-} from "@starknet-react/chains";
 import type { IProvider } from "@web3auth/modal";
 import type {
   ChainPaymasterFactory,
@@ -36,6 +30,11 @@ import type {
 import { calculateAccountAddress, getPrivateKey, getStarkKey } from "../utils";
 import { deployAccount, getDeploymentStatus } from "../utils";
 import { AccountProvider } from "./account";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { Address, Chain } from "../types/chains";
+import { mainnet, sepolia } from "../chains";
+
+const queryClient = new QueryClient();
 
 interface StarknetContextType {
   /** Connected connector. */
@@ -348,18 +347,18 @@ export function StarknetProvider({
     });
 
   return (
-    // <QueryClientProvider client={queryClient ?? defaultQueryClient}>
-    <StarknetContext.Provider value={state}>
-      <AccountProvider
-        address={address}
-        account={account}
-        web3AuthConnection={web3AuthConnection}
-        web3AuthDisconnect={web3AuthDisconnect}
-      >
-        {children}
-      </AccountProvider>
-    </StarknetContext.Provider>
-    // </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <StarknetContext.Provider value={state}>
+        <AccountProvider
+          address={address}
+          account={account}
+          web3AuthConnection={web3AuthConnection}
+          web3AuthDisconnect={web3AuthDisconnect}
+        >
+          {children}
+        </AccountProvider>
+      </StarknetContext.Provider>
+    </QueryClientProvider>
   );
 }
 

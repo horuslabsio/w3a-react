@@ -12,7 +12,7 @@ import {
   ProviderInterface,
 } from "starknet";
 import { keccak256 } from "js-sha3";
-import type { Address } from "@starknet-react/chains";
+import type { Address } from "../types/chains";
 import { validateAndParseAddress } from "starknet";
 
 export const ARGENT_X_ACCOUNT_CLASS_HASH =

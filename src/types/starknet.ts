@@ -1,6 +1,6 @@
 import type { ProviderInterface, PaymasterRpc } from "starknet";
 
-import type { Chain } from "@starknet-react/chains";
+import type { Chain } from "./chains";
 import type { IProvider } from "@web3auth/modal";
 import type { AccountInterface } from "starknet";
 import type { Address } from "viem";
