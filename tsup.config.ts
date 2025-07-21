@@ -9,4 +9,5 @@ export default defineConfig({
   format: ["esm"],
   outDir: "dist",
   platform: "browser",
+  external: ["readable-stream"],
 });
