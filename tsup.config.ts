@@ -8,4 +8,5 @@ export default defineConfig({
   clean: true,
   format: ["esm"],
   outDir: "dist",
+  platform: "browser",
 });
