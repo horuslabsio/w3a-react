@@ -1,89 +1,97 @@
 # W3A React SDK
 
-This is a React SDK built with TypeScript and Vite.
+A React SDK for Web3Auth integration with Starknet blockchain. This package provides React hooks and utilities for seamless Web3Auth integration in React applications.
 
-## Development Setup
+## Installation
+
+```bash
+npm install w3a-react
+# or
+yarn add w3a-react
+# or
+pnpm add w3a-react
+```
+
+## Quick Start
+
+```tsx
+import React from "react";
+import { useWeb3AuthStatus, useConnect, useAccount } from "w3a-react";
+
+function App() {
+  const { isConnected, isLoading } = useWeb3AuthStatus();
+  const { connect, disconnect } = useConnect();
+  const { account } = useAccount();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {!isConnected ? (
+        <button onClick={connect}>Connect Wallet</button>
+      ) : (
+        <div>
+          <p>Connected: {account?.address}</p>
+          <button onClick={disconnect}>Disconnect</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Available Hooks
+
+- `useWeb3AuthStatus()` - Get connection status
+- `useConnect()` - Connect/disconnect functionality
+- `useAccount()` - Get current account information
+- `useBalance()` - Get account balance
+- `useNetwork()` - Get network information
+- `useProvider()` - Get Starknet provider
+- `useContract()` - Interact with smart contracts
+- `useCall()` - Make read calls to contracts
+- `useSendTransaction()` - Send transactions
+- `useBlockNumber()` - Get current block number
+- `useInvalidateOnBlock()` - Invalidate queries on new blocks
+
+## Configuration
+
+The SDK supports both mainnet and testnet (sepolia) configurations:
+
+```tsx
+import { mainnet, sepolia } from "w3a-react";
+
+// Use mainnet
+const mainnetConfig = mainnet;
+
+// Use testnet
+const testnetConfig = sepolia;
+```
+
+## Development
 
 ### Prerequisites
 
-1. Install yalc globally (only needed once):
-
-```bash
-npm install -g yalc
-```
-
-2. Install dependencies:
+1. Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-3. Build the SDK:
+2. Build the SDK:
 
 ```bash
 pnpm run build
 ```
 
-4. Publish to yalc:
-
-```bash
-yalc publish
-```
-
-## Using the SDK in a Consumer App
-
-In your consumer app (e.g., `test-react-app`): https://github.com/stephanniegb/test-app.git
-
-1. Add the SDK to your project:
-
-```bash
-yalc add w3a-react
-```
-
-2. Install dependencies:
-
-```bash
-pnpm install
-```
-
-## 🛠️ Daily Dev Workflow
-
-### In `w3a-react` (SDK):
-
-1. Make code changes (e.g., to your provider or hook)
-2. Rebuild the SDK:
-
-```bash
-pnpm run build
-```
-
-3. Push changes to the consumer app:
-
-```bash
-yalc push
-```
-
----
-
-### In `test-react-app` (consumer):
-
-1. Start the dev server:
+3. Start development server:
 
 ```bash
 pnpm dev
 ```
 
-2. Test your app using the latest SDK changes.
+## License
 
----
-
-### 🔁 Resetting if Things Break
-
-Sometimes local links get weird. If needed:
-
-```bash
-yalc remove w3a-react
-pnpm install
-yalc add w3a-react
-pnpm install
-```
+MIT

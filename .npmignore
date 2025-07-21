@@ -1,0 +1,39 @@
+# Development files
+src/
+node_modules/
+.git/
+.gitignore
+.eslintrc*
+eslint.config.js
+vite.config.ts
+tsconfig*.json
+index.html
+
+# Build artifacts (except dist)
+*.log
+*.tsbuildinfo
+
+# Development dependencies
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/*.test.*
+**/*.spec.*
+coverage/
+
+# Documentation (except README)
+docs/
+*.md
+!README.md 
