@@ -317,7 +317,7 @@ export interface StarknetProviderProps {
   defaultChainId?: bigint;
 
   /**W3a api key - Required for web3auth functionality */
-  w3aApiKey: string;
+  paymasterApiKey: string;
 
   /**Web3auth client id - Required for web3auth functionality */
   web3AuthClientId: string;
@@ -331,17 +331,17 @@ export function StarknetProvider({
   autoConnect,
   defaultChainId,
   children,
-  w3aApiKey,
+  paymasterApiKey,
 }: StarknetProviderProps): React.ReactNode {
-  // Validate that w3aApiKey is provided
-  if (!w3aApiKey || w3aApiKey.trim() === "") {
+  // Validate that paymasterApiKey is provided
+  if (!paymasterApiKey || paymasterApiKey.trim() === "") {
     throw new Error(
-      "w3aApiKey is required for web3auth provider. Please provide a valid API key."
+      "paymasterApiKey is required for web3auth provider. Please provide a valid API key."
     );
   }
 
   const _paymasterProvider =
-    paymasterProvider ?? avnuPaymasterProvider(undefined, w3aApiKey);
+    paymasterProvider ?? avnuPaymasterProvider(undefined, paymasterApiKey);
 
   // Create factory functions that return the provided instances
   const providerFactory: ChainProviderFactory = () => provider;
@@ -383,10 +383,10 @@ export function useStarknet(): StarknetContextType {
 }
 
 // Helper functions
-function avnuPaymasterProvider(chain?: Chain, w3aApiKey?: string) {
-  if (!w3aApiKey) {
+function avnuPaymasterProvider(chain?: Chain, paymasterApiKey?: string) {
+  if (!paymasterApiKey) {
     throw new Error(
-      "w3aApiKey is required for paymaster provider. Please provide a valid API key."
+      "paymasterApiKey is required for paymaster provider. Please provide a valid API key."
     );
   }
 
@@ -414,7 +414,7 @@ function avnuPaymasterProvider(chain?: Chain, w3aApiKey?: string) {
   const myPaymasterRpc = new PaymasterRpc({
     nodeUrl,
     headers: {
-      "x-paymaster-api-key": w3aApiKey,
+      "x-paymaster-api-key": paymasterApiKey,
     },
   });
 
