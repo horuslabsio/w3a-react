@@ -5,7 +5,7 @@ export type StarknetConfigProps = StarknetProviderProps;
 
 export function StarknetConfig({ children, ...config }: StarknetConfigProps) {
   return (
-    <Web3AuthProvider>
+    <Web3AuthProvider clientId={config.web3AuthClientId} chains={config.chains}>
       <StarknetProvider {...config}>{children}</StarknetProvider>
     </Web3AuthProvider>
   );

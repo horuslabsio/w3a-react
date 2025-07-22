@@ -5,26 +5,53 @@ import {
 } from "@web3auth/modal/react";
 
 import { WEB3AUTH_NETWORK } from "@web3auth/modal";
+import { Chain } from "src/types/chains";
+import { mainnet, sepolia } from "src/chains";
 
-// TODO: add a way to change the clientId based on environment
-
-const clientId =
-  "BEQc78qNSC_nE4sh2YSf6MPK4mep2CLELdQ3jPU85y8YrRX3pGBxHV4Yx9hcEoEL_3gg8TUdTL0wST9HV0YHp3A";
-
-if (!clientId) {
-  throw new Error(
-    "NEXT_PUBLIC_WEB3AUTH_CLIENT_ID is not set –– need to set in .env.local for web3auth to work"
-  );
+interface Web3AuthProviderProps {
+  children: React.ReactNode;
+  clientId: string;
+  chains: Chain[];
+  defaultChainId?: bigint;
 }
 
-const web3AuthContextConfig: Web3AuthContextConfig = {
-  web3AuthOptions: {
-    clientId,
-    web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-  },
-};
+export function Web3AuthProvider({
+  children,
+  clientId,
+  chains,
+  defaultChainId,
+}: Web3AuthProviderProps) {
+  // Validate that clientId is provided
+  if (!clientId || clientId.trim() === "") {
+    throw new Error(
+      "web3AuthClientId is required for Web3AuthProvider. Please provide a valid client ID."
+    );
+  }
 
-export function Web3AuthProvider({ children }: { children: React.ReactNode }) {
+  const defaultChain = defaultChainId
+    ? chains.find((c) => c.id === defaultChainId) ?? chains[0]
+    : chains[0];
+
+  let network: (typeof WEB3AUTH_NETWORK)[keyof typeof WEB3AUTH_NETWORK];
+  switch (defaultChain.id) {
+    case mainnet.id:
+      network = WEB3AUTH_NETWORK.SAPPHIRE_MAINNET;
+      break;
+    case sepolia.id:
+      network = WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
+      break;
+    default:
+      network = WEB3AUTH_NETWORK.SAPPHIRE_DEVNET;
+      break;
+  }
+
+  const web3AuthContextConfig: Web3AuthContextConfig = {
+    web3AuthOptions: {
+      clientId,
+      web3AuthNetwork: network,
+    },
+  };
+
   return (
     <Web3AuthProviderModal config={web3AuthContextConfig}>
       {children}

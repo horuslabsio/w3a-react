@@ -308,18 +308,19 @@ export interface StarknetProviderProps {
   provider: RpcProvider;
   /** Paymaster provider to use. */
   paymasterProvider?: PaymasterRpc;
-  /** List of connectors to use. */
-
-  /** Explorer to use. */
 
   /** Connect the first available connector on page load. */
   autoConnect?: boolean;
-  /** React-query client to use. */
-  //   queryClient?: QueryClient;
-  /** Application. */
+
   children?: React.ReactNode;
   /** Default chain to use when wallet is not connected */
   defaultChainId?: bigint;
+
+  /**W3a api key - Required for web3auth functionality */
+  w3aApiKey: string;
+
+  /**Web3auth client id - Required for web3auth functionality */
+  web3AuthClientId: string;
 }
 
 /** Root Starknet context provider. */
@@ -330,8 +331,17 @@ export function StarknetProvider({
   autoConnect,
   defaultChainId,
   children,
+  w3aApiKey,
 }: StarknetProviderProps): React.ReactNode {
-  const _paymasterProvider = paymasterProvider ?? avnuPaymasterProvider();
+  // Validate that w3aApiKey is provided
+  if (!w3aApiKey || w3aApiKey.trim() === "") {
+    throw new Error(
+      "w3aApiKey is required for web3auth provider. Please provide a valid API key."
+    );
+  }
+
+  const _paymasterProvider =
+    paymasterProvider ?? avnuPaymasterProvider(undefined, w3aApiKey);
 
   // Create factory functions that return the provided instances
   const providerFactory: ChainProviderFactory = () => provider;
@@ -373,7 +383,13 @@ export function useStarknet(): StarknetContextType {
 }
 
 // Helper functions
-function avnuPaymasterProvider(chain?: Chain) {
+function avnuPaymasterProvider(chain?: Chain, w3aApiKey?: string) {
+  if (!w3aApiKey) {
+    throw new Error(
+      "w3aApiKey is required for paymaster provider. Please provide a valid API key."
+    );
+  }
+
   let nodeUrl: string;
 
   if (!chain) {
@@ -398,7 +414,7 @@ function avnuPaymasterProvider(chain?: Chain) {
   const myPaymasterRpc = new PaymasterRpc({
     nodeUrl,
     headers: {
-      "x-paymaster-api-key": "874b0d50-e322-4cd4-ad3c-e8810b3d37f0",
+      "x-paymaster-api-key": w3aApiKey,
     },
   });
 
