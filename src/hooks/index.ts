@@ -11,3 +11,4 @@ export * from "./use-provider";
 export * from "./use-read-contract";
 export * from "./use-send-transaction";
 export * from "./use-web3auth-status";
+export * from "./use-web3auth-user";
