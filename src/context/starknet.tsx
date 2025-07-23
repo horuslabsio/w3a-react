@@ -36,11 +36,21 @@ import { mainnet, sepolia } from "../chains";
 
 const queryClient = new QueryClient();
 
+export interface ConnectionResult {
+  success: boolean;
+  address?: Address;
+  account?: AccountInterface;
+  isDeployed: boolean;
+  deploymentSuccess: boolean;
+  deploymentTransactionHash?: string;
+  error?: Error;
+}
+
 interface StarknetContextType {
   /** Connected connector. */
   connector?: IUseWeb3AuthConnect;
   /** Connect the given connector. */
-  connect: () => Promise<void>;
+  connect: () => Promise<ConnectionResult>;
   /** Disconnect the currently connected connector. */
   disconnect: () => Promise<void>;
 
@@ -210,15 +220,19 @@ function useStarknetManager({
         starknetProvider: defaultProvider,
       });
 
+      let deploymentSuccess = true;
+      let deploymentTransactionHash: string | undefined;
       if (!isDeployed) {
         try {
-          await deployAccount({
+          const result = await deployAccount({
             web3authProvider,
             starknetProvider: defaultProvider,
             paymasterRpc: defaultPaymasterProvider,
           });
+          deploymentTransactionHash = result.transactionHash;
         } catch (deployError) {
           console.error("Failed to deploy account:", deployError);
+          deploymentSuccess = false;
           // Still set the account and address even if deployment fails
           // The user can retry deployment later
         }
@@ -230,12 +244,33 @@ function useStarknetManager({
         currentAddress: AXcontractAddress as Address,
         currentAccount: account,
       }));
+
+      // Return success result
+      return {
+        success: true,
+        address: AXcontractAddress as Address,
+        account,
+        isDeployed: isDeployed || deploymentSuccess,
+        deploymentSuccess,
+        deploymentTransactionHash,
+      };
     } catch (error) {
       console.error("Error connecting account:", error);
       setState((state) => ({
         ...state,
         error: error as Error,
       }));
+
+      // Return error result
+      return {
+        success: false,
+        error: error as Error,
+        address: undefined,
+        account: undefined,
+        isDeployed: false,
+        deploymentSuccess: false,
+        deploymentTransactionHash: undefined,
+      };
     }
   }, [
     defaultPaymasterProvider,

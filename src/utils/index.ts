@@ -107,7 +107,7 @@ export const calculateAccountAddress = ({
  * @param web3authProvider - The web3auth provider.
  * @param starknetProvider - The Starknet provider.
  * @param paymasterRpc - The paymaster RPC.
- * @returns The account address.
+ * @returns The account address and transaction hash.
  */
 
 export async function deployAccount({
@@ -163,10 +163,13 @@ export async function deployAccount({
       feeMode: { mode: "sponsored" },
       deploymentData: { ...accountPayload, version: 1 as const },
     };
-    const resp = AXaccount.executePaymasterTransaction([], feesDetails);
+    const resp = await AXaccount.executePaymasterTransaction([], feesDetails);
     console.log("Account deployed successfully:", resp);
 
-    return AXcontractAddress;
+    return {
+      address: AXcontractAddress,
+      transactionHash: resp.transaction_hash,
+    };
   } catch (error) {
     console.error("❌ Account deployment failed:", error);
     throw error;
