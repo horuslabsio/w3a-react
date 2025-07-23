@@ -5,7 +5,7 @@ import type { ConnectionResult } from "../context/starknet";
 
 /** Value returned from `useConnect`. */
 export type UseConnectResult = {
-  connect: () => void;
+  connect: () => Promise<ConnectionResult>;
   connectAsync: () => Promise<ConnectionResult>;
 };
 

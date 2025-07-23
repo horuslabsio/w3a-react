@@ -4,9 +4,9 @@ import { useStarknet } from "../context/starknet";
 
 /** Value returned from `useConnect`. */
 export type UseDisconnectResult = {
-  disconnect: () => void;
+  disconnect: () => Promise<{ success: boolean }>;
 
-  disconnectAsync: () => Promise<void>;
+  disconnectAsync: () => Promise<{ success: boolean }>;
 };
 
 /**

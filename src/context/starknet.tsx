@@ -44,6 +44,7 @@ export interface ConnectionResult {
   deploymentSuccess: boolean;
   deploymentTransactionHash?: string;
   error?: Error;
+  test?: string;
 }
 
 interface StarknetContextType {
@@ -52,7 +53,7 @@ interface StarknetContextType {
   /** Connect the given connector. */
   connect: () => Promise<ConnectionResult>;
   /** Disconnect the currently connected connector. */
-  disconnect: () => Promise<void>;
+  disconnect: (options?: { cleanup: boolean }) => Promise<{ success: boolean }>;
 
   /** Current explorer factory. */
   //   explorer?: ExplorerFactory;
@@ -181,15 +182,39 @@ function useStarknetManager({
       throw new Error("No default provider found");
     }
 
+    let account: AccountInterface | undefined;
+    let address: Address | undefined;
+    let connectionError: Error | undefined;
+
+    // Step 1: Create and connect account
     try {
       await web3AuthConnection.connect();
 
-      if (!web3authProvider) {
-        throw new Error("No web3auth provider found");
+      // Wait for the provider to become available after connection
+      let attempts = 0;
+      const maxAttempts = 10;
+      const retryDelay = 500; // 500ms between attempts
+
+      while (!web3authProviderRef.current && attempts < maxAttempts) {
+        console.warn(
+          `Waiting for Web3Auth provider... Attempt ${
+            attempts + 1
+          }/${maxAttempts}`
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        attempts++;
+      }
+
+      const currentWeb3AuthProvider = web3authProviderRef.current;
+
+      if (!currentWeb3AuthProvider) {
+        throw new Error(
+          "Web3Auth provider is not available after connection. Please try again."
+        );
       }
 
       const privateKey = await getPrivateKey({
-        provider: web3authProvider,
+        provider: currentWeb3AuthProvider,
       });
 
       const starkKeyPub = getStarkKey({ privateKey: privateKey });
@@ -201,7 +226,7 @@ function useStarknetManager({
         starkKeyPubAX: starkKeyPub,
       });
 
-      const account = new Account(
+      account = new Account(
         defaultProvider,
         AXcontractAddress,
         privateKey,
@@ -215,69 +240,76 @@ function useStarknetManager({
         throw new Error("Failed to create valid account instance");
       }
 
-      const isDeployed = await getDeploymentStatus({
-        contractAddress: AXcontractAddress,
-        starknetProvider: defaultProvider,
-      });
+      address = AXcontractAddress as Address;
 
-      let deploymentSuccess = true;
-      let deploymentTransactionHash: string | undefined;
-      if (!isDeployed) {
-        try {
-          const result = await deployAccount({
-            web3authProvider,
-            starknetProvider: defaultProvider,
-            paymasterRpc: defaultPaymasterProvider,
-          });
-          deploymentTransactionHash = result.transactionHash;
-        } catch (deployError) {
-          console.error("Failed to deploy account:", deployError);
-          deploymentSuccess = false;
-          // Still set the account and address even if deployment fails
-          // The user can retry deployment later
-        }
-      }
-
-      // Set the state regardless of deployment status
+      // Set the state for successful connection
       setState((state) => ({
         ...state,
-        currentAddress: AXcontractAddress as Address,
+        currentAddress: address,
         currentAccount: account,
+        error: undefined, // Clear any previous errors
       }));
-
-      // Return success result
-      return {
-        success: true,
-        address: AXcontractAddress as Address,
-        account,
-        isDeployed: isDeployed || deploymentSuccess,
-        deploymentSuccess,
-        deploymentTransactionHash,
-      };
     } catch (error) {
       console.error("Error connecting account:", error);
+      connectionError = error as Error;
       setState((state) => ({
         ...state,
-        error: error as Error,
+        error: connectionError,
       }));
 
-      // Return error result
+      // Return error result for connection failures
       return {
         success: false,
-        error: error as Error,
+        error: connectionError,
         address: undefined,
         account: undefined,
         isDeployed: false,
         deploymentSuccess: false,
         deploymentTransactionHash: undefined,
+        test: "this is being returned but it failed",
       };
     }
-  }, [
-    defaultPaymasterProvider,
-    defaultProvider,
-    web3AuthConnection,
-    web3authProvider,
-  ]);
+
+    // Step 2: Check if deployed
+    let isDeployed = false;
+    let deploymentSuccess = true;
+    let deploymentTransactionHash: string | undefined;
+
+    isDeployed = await getDeploymentStatus({
+      contractAddress: address!,
+      starknetProvider: defaultProvider,
+    });
+
+    // Step 3: Deploy if not deployed
+    if (!isDeployed) {
+      try {
+        if (!web3authProvider) {
+          throw new Error("Web3Auth provider is not available for deployment");
+        }
+        const result = await deployAccount({
+          web3authProvider,
+          starknetProvider: defaultProvider,
+          paymasterRpc: defaultPaymasterProvider,
+        });
+        deploymentTransactionHash = result.transactionHash;
+        isDeployed = true;
+      } catch (deployError) {
+        console.error("Failed to deploy account:", deployError);
+        deploymentSuccess = false;
+      }
+    }
+
+    // Return success result (connection worked, deployment may have failed)
+    return {
+      success: true,
+      address: address,
+      account: account,
+      isDeployed: isDeployed || deploymentSuccess,
+      deploymentSuccess,
+      deploymentTransactionHash,
+      test: "this is being returned",
+    };
+  }, [defaultPaymasterProvider, defaultProvider, web3AuthConnection]);
 
   // AutoConnect implementation
   useEffect(() => {
@@ -310,6 +342,10 @@ function useStarknetManager({
         currentAddress: undefined,
         currentAccount: undefined,
       }));
+
+      return {
+        success: true,
+      };
     },
     [web3AuthDisconnect]
   );
