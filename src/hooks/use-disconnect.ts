@@ -1,30 +1,23 @@
-import { useCallback } from "react";
-
 import { useStarknet } from "../context/starknet";
 
-/** Value returned from `useConnect`. */
+/** Value returned from `useDisconnect`. */
 export type UseDisconnectResult = {
-  disconnect: () => Promise<{ success: boolean }>;
-
-  disconnectAsync: () => Promise<{ success: boolean }>;
+  disconnect: (options?: { cleanup: boolean }) => Promise<{ success: boolean }>;
 };
 
 /**
- * Hook for connecting to a StarkNet wallet.
+ * Hook for disconnecting from a StarkNet wallet.
  *
  * @remarks
  *
- * Use this to implement a "connect wallet" component.
+ * Use this to implement a "disconnect wallet" component.
  *
  * ```
  */
 export function useDisconnect(): UseDisconnectResult {
   const { disconnect } = useStarknet();
 
-  const disconnectAsync = useCallback(() => disconnect(), [disconnect]);
-
   return {
     disconnect,
-    disconnectAsync,
   };
 }

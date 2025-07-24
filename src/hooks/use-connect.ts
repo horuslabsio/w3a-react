@@ -1,12 +1,9 @@
-import { useCallback } from "react";
-
 import { useStarknet } from "../context/starknet";
 import type { ConnectionResult } from "../context/starknet";
 
 /** Value returned from `useConnect`. */
 export type UseConnectResult = {
   connect: () => Promise<ConnectionResult>;
-  connectAsync: () => Promise<ConnectionResult>;
 };
 
 /**
@@ -21,10 +18,7 @@ export type UseConnectResult = {
 export function useConnect(): UseConnectResult {
   const { connect } = useStarknet();
 
-  const connectAsync = useCallback(() => connect(), [connect]);
-
   return {
     connect,
-    connectAsync,
   };
 }
