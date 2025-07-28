@@ -5,6 +5,7 @@ export * from "./use-call";
 export * from "./use-connect";
 export * from "./use-contract";
 export * from "./use-disconnect";
+export * from "./use-identity-token";
 export * from "./use-invalidate-on-block";
 export * from "./use-network";
 export * from "./use-provider";

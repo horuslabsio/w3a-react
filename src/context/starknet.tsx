@@ -13,6 +13,7 @@ import {
   useWeb3AuthDisconnect,
   type IUseWeb3AuthConnect,
 } from "@web3auth/modal/react";
+
 import {
   Account,
   AccountInterface,
@@ -44,7 +45,6 @@ export interface ConnectionResult {
   deploymentSuccess: boolean;
   deploymentTransactionHash?: string;
   error?: Error;
-  test?: string;
 }
 
 interface StarknetContextType {
@@ -188,33 +188,16 @@ function useStarknetManager({
 
     // Step 1: Create and connect account
     try {
-      await web3AuthConnection.connect();
+      const w3aProvider = await web3AuthConnection.connect();
 
-      // Wait for the provider to become available after connection
-      let attempts = 0;
-      const maxAttempts = 10;
-      const retryDelay = 500; // 500ms between attempts
-
-      while (!web3authProviderRef.current && attempts < maxAttempts) {
-        console.warn(
-          `Waiting for Web3Auth provider... Attempt ${
-            attempts + 1
-          }/${maxAttempts}`
-        );
-        await new Promise((resolve) => setTimeout(resolve, retryDelay));
-        attempts++;
-      }
-
-      const currentWeb3AuthProvider = web3authProviderRef.current;
-
-      if (!currentWeb3AuthProvider) {
+      if (!w3aProvider) {
         throw new Error(
           "Web3Auth provider is not available after connection. Please try again."
         );
       }
 
       const privateKey = await getPrivateKey({
-        provider: currentWeb3AuthProvider,
+        provider: w3aProvider,
       });
 
       const starkKeyPub = getStarkKey({ privateKey: privateKey });
@@ -266,7 +249,6 @@ function useStarknetManager({
         isDeployed: false,
         deploymentSuccess: false,
         deploymentTransactionHash: undefined,
-        test: "this is being returned but it failed",
       };
     }
 
