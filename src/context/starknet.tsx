@@ -178,16 +178,18 @@ function useStarknetManager({
   Web3AuthDisconnectRef.current = web3AuthDisconnect;
 
   const connect = useCallback(async () => {
+    console.log("🚀 Connect function started");
     if (!defaultProvider) {
       throw new Error("No default provider found");
     }
 
     let account: AccountInterface | undefined;
     let address: Address | undefined;
-    let connectionError: Error | undefined;
+    let isDeployed = false;
+    let deploymentTransactionHash: string | undefined;
 
-    // Step 1: Create and connect account
     try {
+      // Step 1: Create and connect account
       const w3aProvider = await web3AuthConnection.connect();
 
       if (!w3aProvider) {
@@ -232,15 +234,60 @@ function useStarknetManager({
         currentAccount: account,
         error: undefined, // Clear any previous errors
       }));
+
+      // Step 2: Check if deployed
+      console.log("🔍 Checking deployment status...");
+      isDeployed = await getDeploymentStatus({
+        contractAddress: address,
+        starknetProvider: defaultProvider,
+      });
+      console.log(
+        `📊 Deployment status: ${isDeployed ? "Deployed" : "Not deployed"}`
+      );
+
+      // Step 3: Deploy if not deployed
+      if (!isDeployed) {
+        console.log("🚀 Starting account deployment...");
+        if (!web3authProvider) {
+          throw new Error("Web3Auth provider is not available for deployment");
+        }
+
+        console.log("⏳ Calling deployAccount function...");
+        const result = await deployAccount({
+          web3authProvider,
+          starknetProvider: defaultProvider,
+          paymasterRpc: defaultPaymasterProvider,
+        });
+        console.log("✅ deployAccount function completed");
+        console.log(
+          "✅ Account deployment completed and transaction confirmed"
+        );
+        deploymentTransactionHash = result.transactionHash;
+        isDeployed = true;
+      } else {
+        console.log("✅ Account is already deployed, skipping deployment");
+      }
+
+      console.log("🏁 Connect function about to resolve...");
+      // Return success result
+      return {
+        success: true,
+        address: address,
+        account: account,
+        isDeployed: isDeployed,
+        deploymentSuccess: true,
+        deploymentTransactionHash,
+      };
     } catch (error) {
-      console.error("Error connecting account:", error);
-      connectionError = error as Error;
+      console.error("Error in connect process:", error);
+      const connectionError = error as Error;
+
       setState((state) => ({
         ...state,
         error: connectionError,
       }));
 
-      // Return error result for connection failures
+      // Return error result
       return {
         success: false,
         error: connectionError,
@@ -251,48 +298,12 @@ function useStarknetManager({
         deploymentTransactionHash: undefined,
       };
     }
-
-    // Step 2: Check if deployed
-    let isDeployed = false;
-    let deploymentSuccess = true;
-    let deploymentTransactionHash: string | undefined;
-
-    isDeployed = await getDeploymentStatus({
-      contractAddress: address!,
-      starknetProvider: defaultProvider,
-    });
-
-    console.log({ isDeployed });
-
-    // Step 3: Deploy if not deployed
-    if (!isDeployed) {
-      try {
-        if (!web3authProvider) {
-          throw new Error("Web3Auth provider is not available for deployment");
-        }
-        const result = await deployAccount({
-          web3authProvider,
-          starknetProvider: defaultProvider,
-          paymasterRpc: defaultPaymasterProvider,
-        });
-        deploymentTransactionHash = result.transactionHash;
-        isDeployed = true;
-      } catch (deployError) {
-        console.error("Failed to deploy account:", deployError);
-        deploymentSuccess = false;
-      }
-    }
-
-    // Return success result (connection worked, deployment may have failed)
-    return {
-      success: true,
-      address: address,
-      account: account,
-      isDeployed: isDeployed || deploymentSuccess,
-      deploymentSuccess,
-      deploymentTransactionHash,
-    };
-  }, [defaultPaymasterProvider, defaultProvider, web3AuthConnection]);
+  }, [
+    defaultPaymasterProvider,
+    defaultProvider,
+    web3AuthConnection,
+    web3authProvider,
+  ]);
 
   // AutoConnect implementation
   useEffect(() => {

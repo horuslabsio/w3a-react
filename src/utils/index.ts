@@ -158,9 +158,17 @@ export async function deployAccount({
       deploymentData: { ...accountPayload, version: 1 as const },
     };
     const resp = await AXaccount.executePaymasterTransaction([], feesDetails);
+    console.log("📤 Transaction submitted with hash:", resp.transaction_hash);
 
+    console.log("⏳ Waiting for transaction confirmation...");
     await starknetProvider.waitForTransaction(resp.transaction_hash);
+    console.log("✅ Transaction confirmed on blockchain");
 
+    console.log(
+      "✅ Account deployed successfully: I waited for the transaction"
+    );
+
+    console.log("🏁 deployAccount function about to return...");
     return {
       address: AXcontractAddress,
       transactionHash: resp.transaction_hash,

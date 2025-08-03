@@ -56,17 +56,6 @@ export function AccountProvider({
     const hasUserInfoChange = prevState.userInfo !== userInfo;
 
     if (hasAccountChange || hasAddressChange || hasUserInfoChange) {
-      console.log("🔄 AccountProvider state changed:", {
-        account: account ? "Account exists" : "No account",
-        address: address || "No address",
-        userInfo: userInfo ? "User info exists" : "No user info",
-        changes: {
-          account: hasAccountChange,
-          address: hasAddressChange,
-          userInfo: hasUserInfoChange,
-        },
-      });
-
       // Update the ref with current state
       prevStateRef.current = currentState;
     }
