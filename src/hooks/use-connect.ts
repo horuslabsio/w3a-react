@@ -1,9 +1,15 @@
+import { Address } from "src/types/chains";
 import { useStarknet } from "../context/starknet";
 import type { ConnectionResult } from "../context/starknet";
 
 /** Value returned from `useConnect`. */
 export type UseConnectResult = {
   connect: () => Promise<ConnectionResult>;
+  deployAccountForAddress: ({
+    address,
+  }: {
+    address: Address;
+  }) => Promise<{ transactionHash: string } | undefined>;
 };
 
 /**
@@ -16,9 +22,10 @@ export type UseConnectResult = {
  * ```
  */
 export function useConnect(): UseConnectResult {
-  const { connect } = useStarknet();
+  const { connect, deployAccountForAddress } = useStarknet();
 
   return {
+    deployAccountForAddress,
     connect,
   };
 }

@@ -26,7 +26,13 @@ const AccountContext = React.createContext<{
 export function useStarknetAccount() {
   const { account, address, web3AuthConnection, web3AuthDisconnect, userInfo } =
     useContext(AccountContext);
-  return { account, address, web3AuthConnection, web3AuthDisconnect, userInfo };
+  return {
+    account,
+    address,
+    web3AuthConnection,
+    web3AuthDisconnect,
+    userInfo,
+  };
 }
 
 export function AccountProvider({

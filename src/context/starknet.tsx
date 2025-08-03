@@ -41,9 +41,6 @@ export interface ConnectionResult {
   success: boolean;
   address?: Address;
   account?: AccountInterface;
-  isDeployed: boolean;
-  deploymentSuccess: boolean;
-  deploymentTransactionHash?: string;
   error?: Error;
 }
 
@@ -54,6 +51,12 @@ interface StarknetContextType {
   connect: () => Promise<ConnectionResult>;
   /** Disconnect the currently connected connector. */
   disconnect: (options?: { cleanup: boolean }) => Promise<{ success: boolean }>;
+  /** Deploy account for a given address. */
+  deployAccountForAddress: ({
+    address,
+  }: {
+    address: Address;
+  }) => Promise<{ transactionHash: string } | undefined>;
 
   /** Current explorer factory. */
   //   explorer?: ExplorerFactory;
@@ -178,15 +181,12 @@ function useStarknetManager({
   Web3AuthDisconnectRef.current = web3AuthDisconnect;
 
   const connect = useCallback(async () => {
-    console.log("🚀 Connect function started");
     if (!defaultProvider) {
       throw new Error("No default provider found");
     }
 
     let account: AccountInterface | undefined;
     let address: Address | undefined;
-    let isDeployed = false;
-    let deploymentTransactionHash: string | undefined;
 
     try {
       // Step 1: Create and connect account
@@ -236,47 +236,43 @@ function useStarknetManager({
       }));
 
       // Step 2: Check if deployed
-      console.log("🔍 Checking deployment status...");
-      isDeployed = await getDeploymentStatus({
-        contractAddress: address,
-        starknetProvider: defaultProvider,
-      });
-      console.log(
-        `📊 Deployment status: ${isDeployed ? "Deployed" : "Not deployed"}`
-      );
+      // console.log("🔍 Checking deployment status...");
+      // isDeployed = await getDeploymentStatus({
+      //   contractAddress: address,
+      //   starknetProvider: defaultProvider,
+      // });
+      // console.log(
+      //   `📊 Deployment status: ${isDeployed ? "Deployed" : "Not deployed"}`
+      // );
 
       // Step 3: Deploy if not deployed
-      if (!isDeployed) {
-        console.log("🚀 Starting account deployment...");
-        if (!web3authProvider) {
-          throw new Error("Web3Auth provider is not available for deployment");
-        }
+      // if (!isDeployed) {
+      //   console.log("🚀 Starting account deployment...");
+      //   if (!web3authProvider) {
+      //     throw new Error("Web3Auth provider is not available for deployment");
+      //   }
 
-        console.log("⏳ Calling deployAccount function...");
-        const result = await deployAccount({
-          web3authProvider,
-          starknetProvider: defaultProvider,
-          paymasterRpc: defaultPaymasterProvider,
-        });
-        console.log("✅ deployAccount function completed");
-        console.log(
-          "✅ Account deployment completed and transaction confirmed"
-        );
-        deploymentTransactionHash = result.transactionHash;
-        isDeployed = true;
-      } else {
-        console.log("✅ Account is already deployed, skipping deployment");
-      }
+      //   console.log("⏳ Calling deployAccount function...");
+      //   const result = await deployAccount({
+      //     web3authProvider,
+      //     starknetProvider: defaultProvider,
+      //     paymasterRpc: defaultPaymasterProvider,
+      //   });
+      //   console.log("✅ deployAccount function completed");
+      //   console.log(
+      //     "✅ Account deployment completed and transaction confirmed"
+      //   );
+      //   deploymentTransactionHash = result.transactionHash;
+      //   isDeployed = true;
+      // } else {
+      //   console.log("✅ Account is already deployed, skipping deployment");
+      // }
 
-      console.log("🏁 Connect function about to resolve...");
       // Return success result
       return {
         success: true,
         address: address,
         account: account,
-        isDeployed: isDeployed,
-        deploymentSuccess: true,
-        deploymentTransactionHash,
       };
     } catch (error) {
       console.error("Error in connect process:", error);
@@ -293,9 +289,6 @@ function useStarknetManager({
         error: connectionError,
         address: undefined,
         account: undefined,
-        isDeployed: false,
-        deploymentSuccess: false,
-        deploymentTransactionHash: undefined,
       };
     }
   }, [
@@ -304,6 +297,39 @@ function useStarknetManager({
     web3AuthConnection,
     web3authProvider,
   ]);
+
+  const deployAccountForAddress = useCallback(
+    async ({ address }: { address: Address }) => {
+      try {
+        const isDeployed = await getDeploymentStatus({
+          contractAddress: address,
+          starknetProvider: defaultProvider,
+        });
+
+        if (!isDeployed) {
+          if (!web3authProvider) {
+            throw new Error(
+              "Web3Auth provider is not available for deployment"
+            );
+          }
+
+          const result = await deployAccount({
+            web3authProvider,
+            starknetProvider: defaultProvider,
+            paymasterRpc: defaultPaymasterProvider,
+          });
+
+          return {
+            transactionHash: result.transactionHash,
+          };
+        }
+      } catch (error) {
+        console.error("Error in deployAccountForAddress:", error);
+        throw error;
+      }
+    },
+    [defaultProvider, web3authProvider, defaultPaymasterProvider]
+  );
 
   // AutoConnect implementation
   useEffect(() => {
@@ -356,6 +382,7 @@ function useStarknetManager({
     web3AuthProvider: state.currentWeb3AuthProvider,
     connect,
     disconnect,
+    deployAccountForAddress,
     chains,
     error: state.error,
     web3AuthStatus: status,
