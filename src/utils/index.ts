@@ -124,18 +124,13 @@ export async function deployAccount({
     const validPrivateKey = await getPrivateKey({
       provider: web3authProvider,
     });
-    console.log("✅ Grinded private key:", validPrivateKey);
 
     // ✅ 2. Derive the matching public key
     const starkKeyPub = getStarkKey({ privateKey: validPrivateKey });
-    console.log("✅ StarkNet public key:", starkKeyPub);
 
     // ✅ 3. Calculate the deterministic address
     const { AXcontractAddress, AXConstructorCallData } =
       calculateAccountAddress({ starkKeyPubAX: starkKeyPub });
-
-    console.log("✅ Calculated address:", AXcontractAddress);
-    console.log({ AXConstructorCallData });
 
     // ✅ 4. Create account instance with correct key
     const AXaccount = new Account(
@@ -146,7 +141,6 @@ export async function deployAccount({
       undefined,
       paymasterRpc
     );
-    console.log("✅ Account instance created");
 
     // ✅ 5. Calculate deploymentData
     const accountPayload = {
@@ -164,7 +158,8 @@ export async function deployAccount({
       deploymentData: { ...accountPayload, version: 1 as const },
     };
     const resp = await AXaccount.executePaymasterTransaction([], feesDetails);
-    console.log("Account deployed successfully:", resp);
+
+    await starknetProvider.waitForTransaction(resp.transaction_hash);
 
     return {
       address: AXcontractAddress,
@@ -193,7 +188,6 @@ export const getDeploymentStatus = async ({
 }) => {
   try {
     await starknetProvider.getClassHashAt(contractAddress);
-
     return true;
   } catch (error) {
     console.error("❌ Error getting deployment status:", error);

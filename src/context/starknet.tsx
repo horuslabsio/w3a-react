@@ -262,6 +262,8 @@ function useStarknetManager({
       starknetProvider: defaultProvider,
     });
 
+    console.log({ isDeployed });
+
     // Step 3: Deploy if not deployed
     if (!isDeployed) {
       try {
@@ -289,7 +291,6 @@ function useStarknetManager({
       isDeployed: isDeployed || deploymentSuccess,
       deploymentSuccess,
       deploymentTransactionHash,
-      test: "this is being returned",
     };
   }, [defaultPaymasterProvider, defaultProvider, web3AuthConnection]);
 
